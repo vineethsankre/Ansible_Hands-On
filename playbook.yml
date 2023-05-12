@@ -1,0 +1,17 @@
+---
+- name: Update and upgrade packages on servers
+  hosts: all
+  become: true
+  tasks:
+    - name: Update package cache
+      apt:
+        update_cache: yes
+      register: apt_update
+
+    - name: Upgrade packages
+      apt:
+        upgrade: yes
+        autoremove: yes
+        force_apt_get: yes
+      when: apt_update.changed
+

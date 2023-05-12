@@ -1,0 +1,49 @@
+- name: Configure Apache Web Server
+  hosts: webservers
+  become: true
+
+  vars:
+    http_port: 8000
+    https_port: 4443
+    html_welcome_msg: "Hi there, I'm Vineeth Sankre."
+
+  tasks:
+    - name: Add package repository
+      apt_repository:
+        repo: "deb http://archive.ubuntu.com/ubuntu/ bionic main"
+        state: present
+
+    - name: Install Apache2
+      apt:
+        name: apache2
+        state: latest
+
+    - name: Write the ports.conf file
+      template:
+        src: templates/ports.conf.j2
+        dest: /etc/apache2/ports.conf
+      notify: 
+        - restart apache
+
+    - name: Write the index.html file
+      template:
+        src: templates/index.html.j2
+        dest: /var/www/html/index.html
+      notify:
+        - restart apache
+
+    - name: Update package cache
+      apt:
+        update_cache: yes
+        
+    - name: Ensure Apache2 service is running
+      service:
+        name: apache2
+        state: started
+        enabled: true
+
+  handlers:
+    - name: Restart Apache2
+      service:
+        name: apache2
+        state: restarted
